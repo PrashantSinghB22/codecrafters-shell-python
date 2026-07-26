@@ -54,6 +54,12 @@ class Shell(object):
             print(f"{command}: not found")
             self.__return_code = 0
 
+    def pwd(self)-> None:
+        print(os.getcwd())
+        self.__return_code = 0
+
+    
+
 
 def main():
     my_shell = Shell()
@@ -73,3 +79,23 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
