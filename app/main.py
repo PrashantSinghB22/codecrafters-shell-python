@@ -60,11 +60,16 @@ class Shell(object):
 
     def cd(self, *args) -> None:
         directory = args[0]
+
+        if directory == "~":
+            directory = os.environ["HOME"]
         try :
             os.chdir(directory)
             self.__return_code = 0
         except FileNotFoundError:
             print(f"cd: {directory}: No such file or directory")
+
+       
 
 
     
