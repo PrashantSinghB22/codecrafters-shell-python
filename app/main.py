@@ -64,7 +64,7 @@ class Shell(object):
             os.chdir(directory)
             self.__return_code = 0
         except FileNotFoundError:
-            print(f"cd: {directory}: No such File or directory")
+            print(f"cd: {directory}: No such file or directory")
 
 
     
