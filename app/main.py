@@ -58,6 +58,15 @@ class Shell(object):
         print(os.getcwd())
         self.__return_code = 0
 
+    def cd(self, *args) -> None:
+        directory = args[0]
+        try :
+            os.chdir(directory)
+            self.__return_code = 0
+        except FileNotFoundError:
+            print(f"cd: {directory}: No such File or directory")
+
+
     
 
 
