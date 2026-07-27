@@ -46,7 +46,7 @@ def run_external(parts):
 
     if executable:
         parts[0] = executable
-        subprocess.run(parts)
+        subprocess.run(parts, executable=executable)
     else:
         print(f"{parts[0]}: command not found")
 
