@@ -8,9 +8,8 @@ builtins = {"echo", "exit", "type", "pwd", "cd"}
 
 def find_executable(name):
     path = os.environ["PATH"]
-    directories = path.split(os.pathsep)
 
-    for directory in directories:
+    for directory in path.split(os.pathsep):
         full_path = os.path.join(directory, name)
 
         if os.path.isfile(full_path) and os.access(full_path, os.X_OK):
@@ -18,39 +17,40 @@ def find_executable(name):
 
     return None
 
+
+def output(text, stdout_file):
+    if stdout_file is None:
+        print(text)
+    else:
+        with open(stdout_file, "w") as f:
+            print(text, file=f)
+
+
 def handle_exit():
     sys.exit()
 
-def handle_echo(parts):
-    print(" ".join(parts[1:]))
 
-    
+def handle_echo(parts, stdout_file):
+    output(" ".join(parts[1:]), stdout_file)
 
-def handle_pwd():
-    print(os.getcwd())
 
-def handle_type(parts):
+def handle_pwd(stdout_file):
+    output(os.getcwd(), stdout_file)
+
+
+def handle_type(parts, stdout_file):
     name = parts[1]
 
     if name in builtins:
-        print(f"{name} is a shell builtin")
-    else: 
+        output(f"{name} is a shell builtin", stdout_file)
+    else:
         executable = find_executable(name)
 
         if executable:
-            print(f"{name} is {executable}")
-
+            output(f"{name} is {executable}", stdout_file)
         else:
-            print(f"{name}: not found")
+            output(f"{name}: not found", stdout_file)
 
-def run_external(parts, stdout_file):
-    executable = find_executable(parts[0])
-
-    if stdout_file is None:
-        subprocess.run(parts, executable=executable)
-    else:
-        with open(stdout_file, "w") as f:
-            subprocess.run(parts, executable=executable, stdout=f)
 
 def handle_cd(parts):
     directory = parts[1]
@@ -63,27 +63,43 @@ def handle_cd(parts):
     else:
         print(f"cd: {directory}: No such file or directory")
 
+
+def run_external(parts, stdout_file):
+    executable = find_executable(parts[0])
+
+    if stdout_file is None:
+        subprocess.run(parts, executable=executable)
+    else:
+        with open(stdout_file, "w") as f:
+            subprocess.run(parts, executable=executable, stdout=f)
+
+
 def main():
     while True:
         sys.stdout.write("$ ")
-        command_line = input()
+        sys.stdout.flush()
+
+        try:
+            command_line = input()
+        except EOFError:
+            break
 
         parts = shlex.split(command_line)
+
+        if not parts:
+            continue
 
         stdout_file = None
 
         if ">" in parts:
-            index = parts.index[">"]
+            index = parts.index(">")
             stdout_file = parts[index + 1]
             parts = parts[:index]
 
         elif "1>" in parts:
-            index = parts.index[">"]
+            index = parts.index("1>")
             stdout_file = parts[index + 1]
             parts = parts[:index]
-
-
-        
 
         if not parts:
             continue
@@ -94,20 +110,19 @@ def main():
             handle_exit()
 
         elif command == "echo":
-            handle_echo(parts)
+            handle_echo(parts, stdout_file)
 
         elif command == "type":
-            handle_type(parts)
+            handle_type(parts, stdout_file)
 
         elif command == "pwd":
-            handle_pwd()
+            handle_pwd(stdout_file)
 
         elif command == "cd":
             handle_cd(parts)
 
         else:
-            run_external(parts)
-
+            run_external(parts, stdout_file)
 
 
 if __name__ == "__main__":
