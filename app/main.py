@@ -67,6 +67,10 @@ def handle_cd(parts):
 def run_external(parts, stdout_file):
     executable = find_executable(parts[0])
 
+    if executable is None:
+        print(f"{parts[0]}: command not found")
+        return
+
     if stdout_file is None:
         subprocess.run(parts, executable=executable)
     else:
