@@ -24,6 +24,8 @@ def handle_exit():
 def handle_echo(parts):
     print(" ".join(parts[1:]))
 
+    
+
 def handle_pwd():
     print(os.getcwd())
 
@@ -41,14 +43,14 @@ def handle_type(parts):
         else:
             print(f"{name}: not found")
 
-def run_external(parts):
+def run_external(parts, stdout_file):
     executable = find_executable(parts[0])
 
-    if executable:
-        
+    if stdout_file is None:
         subprocess.run(parts, executable=executable)
     else:
-        print(f"{parts[0]}: command not found")
+        with open(stdout_file, "w") as f:
+            subprocess.run(parts, executable=executable, stdout=f)
 
 def handle_cd(parts):
     directory = parts[1]
@@ -61,15 +63,27 @@ def handle_cd(parts):
     else:
         print(f"cd: {directory}: No such file or directory")
 
-
-
-
 def main():
     while True:
         sys.stdout.write("$ ")
         command_line = input()
 
         parts = shlex.split(command_line)
+
+        stdout_file = None
+
+        if ">" in parts:
+            index = parts.index[">"]
+            stdout_file = parts[index + 1]
+            parts = parts[:index]
+
+        elif "1>" in parts:
+            index = parts.index[">"]
+            stdout_file = parts[index + 1]
+            parts = parts[:index]
+
+
+        
 
         if not parts:
             continue
