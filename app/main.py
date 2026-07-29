@@ -61,18 +61,19 @@ def handle_cd(parts):
     if os.path.isdir(directory):
         os.chdir(directory)
     else:
-        print(f"cd: {directory}: No such file or directory")
+        print(f"cd: {directory}: No such file or directory", file=sys.stderr)
 
 
 def run_external(parts, stdout_file, stderr_file):
     executable = find_executable(parts[0])
 
     if executable is None:
-        print(f"{parts[0]}: command not found")
+        print(f"{parts[0]}: command not found", file=sys.stderr)
         return
 
     stdout = None
     stderr = None
+
     try:
         if stdout_file is not None:
             stdout = open(stdout_file, "w")
@@ -82,18 +83,16 @@ def run_external(parts, stdout_file, stderr_file):
 
         subprocess.run(
             parts,
-            executable = executable,
-            stdout = stdout,
-            stderr = stderr
+            executable=executable,
+            stdout=stdout,
+            stderr=stderr,
         )
-
     finally:
         if stdout is not None:
             stdout.close()
+
         if stderr is not None:
             stderr.close()
-
-    
 
 
 def main():
@@ -123,7 +122,8 @@ def main():
             index = parts.index("1>")
             stdout_file = parts[index + 1]
             parts = parts[:index]
-        elif "2>" in parts:
+
+        if "2>" in parts:
             index = parts.index("2>")
             stderr_file = parts[index + 1]
             parts = parts[:index]
@@ -149,9 +149,8 @@ def main():
             handle_cd(parts)
 
         else:
-            run_external(parts, stdout_file)
+            run_external(parts, stdout_file, stderr_file)
 
 
 if __name__ == "__main__":
     main()
-    
