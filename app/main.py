@@ -128,6 +128,12 @@ def main():
             stderr_file = parts[index + 1]
             parts = parts[:index]
 
+        if stdout_file is not None:
+            open(stdout_file, "w").close()
+
+        if stderr_file is not None:
+            open(stderr_file, "w").close()
+
         if not parts:
             continue
 
