@@ -116,11 +116,15 @@ def main():
         stderr_file = None
         append_stdout = False
 
+        
+
         if ">>" in parts:
+            index = parts.index(">>")
             stdout_file = parts[index+1]
             append_stdout = True
 
         elif "1>>" in parts:
+            index = parts.index(">>")
             stdout_file = parts[index+1]
             append_stdout = True
 
