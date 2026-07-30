@@ -18,11 +18,12 @@ def find_executable(name):
     return None
 
 
-def output(text, stdout_file):
+def output(text, stdout_file, append_stdout):
     if stdout_file is None:
         print(text)
     else:
-        with open(stdout_file, "w") as f:
+        mode = "a" if append_stdout else "w"
+        with open(stdout_file, mode) as f:
             print(text, file=f)
 
 
@@ -30,15 +31,15 @@ def handle_exit():
     sys.exit()
 
 
-def handle_echo(parts, stdout_file):
+def handle_echo(parts, stdout_file, append_stdout):
     output(" ".join(parts[1:]), stdout_file)
 
 
-def handle_pwd(stdout_file):
+def handle_pwd(stdout_file, append_stdout):
     output(os.getcwd(), stdout_file)
 
 
-def handle_type(parts, stdout_file):
+def handle_type(parts, stdout_file, append_stdout):
     name = parts[1]
 
     if name in builtins:
@@ -64,7 +65,7 @@ def handle_cd(parts):
         print(f"cd: {directory}: No such file or directory", file=sys.stderr)
 
 
-def run_external(parts, stdout_file, stderr_file):
+def run_external(parts, stdout_file, stderr_file, append_stdout):
     executable = find_executable(parts[0])
 
     if executable is None:
@@ -76,7 +77,8 @@ def run_external(parts, stdout_file, stderr_file):
 
     try:
         if stdout_file is not None:
-            stdout = open(stdout_file, "w")
+            mode = "a" if append_stdout else "w"
+            stdout = open(stdout_file, mode)
 
         if stderr_file is not None:
             stderr = open(stderr_file, "w")
@@ -112,8 +114,17 @@ def main():
 
         stdout_file = None
         stderr_file = None
+        append_stdout = False
 
-        if ">" in parts:
+        if ">>" in parts:
+            stdout_file = parts[index+1]
+            append_stdout = True
+
+        elif "1>>" in parts:
+            stdout_file = parts[index+1]
+            append_stdout = True
+
+        elif ">" in parts:
             index = parts.index(">")
             stdout_file = parts[index + 1]
             parts = parts[:index]
