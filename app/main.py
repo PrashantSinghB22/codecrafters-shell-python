@@ -89,13 +89,13 @@ def run_external(parts, stdout_file, stderr_file, append_stdout):
             stdout=stdout,
             stderr=stderr,
         )
-    finally:
-        if stdout_file is not None:
-            mode = "a" if append_stdout else "w"
-            open(stdout_file, mode).close()
 
-        if stderr_file is not None:
-            open(stderr_file, "w").close()
+    finally:
+        if stdout is not None:
+            stdout.close()
+
+        if stderr is not None:
+            stderr.close()
 
 
 def main():
@@ -117,12 +117,6 @@ def main():
         stderr_file = None
         append_stdout = False
 
-        
-
-        stdout_file = None
-        stderr_file = None
-        append_stdout = False
-
         if "1>>" in parts:
             index = parts.index("1>>")
             stdout_file = parts[index + 1]
@@ -138,13 +132,11 @@ def main():
         elif "1>" in parts:
             index = parts.index("1>")
             stdout_file = parts[index + 1]
-            append_stdout = False
             parts = parts[:index]
 
         elif ">" in parts:
             index = parts.index(">")
             stdout_file = parts[index + 1]
-            append_stdout = False
             parts = parts[:index]
 
         if "2>" in parts:
@@ -153,7 +145,8 @@ def main():
             parts = parts[:index]
 
         if stdout_file is not None:
-            open(stdout_file, "w").close()
+            mode = "a" if append_stdout else "w"
+            open(stdout_file, mode).close()
 
         if stderr_file is not None:
             open(stderr_file, "w").close()
@@ -167,19 +160,19 @@ def main():
             handle_exit()
 
         elif command == "echo":
-            handle_echo(parts, stdout_file)
+            handle_echo(parts, stdout_file, append_stdout)
 
         elif command == "type":
-            handle_type(parts, stdout_file)
+            handle_type(parts, stdout_file, append_stdout)
 
         elif command == "pwd":
-            handle_pwd(stdout_file)
+            handle_pwd(stdout_file, append_stdout)
 
         elif command == "cd":
             handle_cd(parts)
 
         else:
-            run_external(parts, stdout_file, stderr_file)
+            run_external(parts, stdout_file, stderr_file, append_stdout)
 
 
 if __name__ == "__main__":
