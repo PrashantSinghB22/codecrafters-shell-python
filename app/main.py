@@ -32,25 +32,25 @@ def handle_exit():
 
 
 def handle_echo(parts, stdout_file, append_stdout):
-    output(" ".join(parts[1:]), stdout_file)
+    output(" ".join(parts[1:]), stdout_file, append_stdout)
 
 
 def handle_pwd(stdout_file, append_stdout):
-    output(os.getcwd(), stdout_file)
+    output(os.getcwd(), stdout_file, append_stdout)
 
 
 def handle_type(parts, stdout_file, append_stdout):
     name = parts[1]
 
     if name in builtins:
-        output(f"{name} is a shell builtin", stdout_file)
+        output(f"{name} is a shell builtin", stdout_file, append_stdout)
     else:
         executable = find_executable(name)
 
         if executable:
-            output(f"{name} is {executable}", stdout_file)
+            output(f"{name} is {executable}", stdout_file, append_stdout)
         else:
-            output(f"{name}: not found", stdout_file)
+            output(f"{name}: not found", stdout_file, append_stdout)
 
 
 def handle_cd(parts):
@@ -90,11 +90,12 @@ def run_external(parts, stdout_file, stderr_file, append_stdout):
             stderr=stderr,
         )
     finally:
-        if stdout is not None:
-            stdout.close()
+        if stdout_file is not None:
+            mode = "a" if append_stdout else "w"
+            open(stdout_file, mode).close()
 
-        if stderr is not None:
-            stderr.close()
+        if stderr_file is not None:
+            open(stderr_file, "w").close()
 
 
 def main():
@@ -118,24 +119,32 @@ def main():
 
         
 
+        stdout_file = None
+        stderr_file = None
+        append_stdout = False
+
         if "1>>" in parts:
-            index = parts.index(">>")
-            stdout_file = parts[index+1]
+            index = parts.index("1>>")
+            stdout_file = parts[index + 1]
             append_stdout = True
+            parts = parts[:index]
 
         elif ">>" in parts:
             index = parts.index(">>")
-            stdout_file = parts[index+1]
+            stdout_file = parts[index + 1]
             append_stdout = True
+            parts = parts[:index]
 
         elif "1>" in parts:
-            index = parts.index(">")
+            index = parts.index("1>")
             stdout_file = parts[index + 1]
+            append_stdout = False
             parts = parts[:index]
 
         elif ">" in parts:
-            index = parts.index("1>")
+            index = parts.index(">")
             stdout_file = parts[index + 1]
+            append_stdout = False
             parts = parts[:index]
 
         if "2>" in parts:
