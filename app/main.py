@@ -118,22 +118,22 @@ def main():
 
         
 
-        if ">>" in parts:
+        if "1>>" in parts:
             index = parts.index(">>")
             stdout_file = parts[index+1]
             append_stdout = True
 
-        elif "1>>" in parts:
+        elif ">>" in parts:
             index = parts.index(">>")
             stdout_file = parts[index+1]
             append_stdout = True
 
-        elif ">" in parts:
+        elif "1>" in parts:
             index = parts.index(">")
             stdout_file = parts[index + 1]
             parts = parts[:index]
 
-        elif "1>" in parts:
+        elif ">" in parts:
             index = parts.index("1>")
             stdout_file = parts[index + 1]
             parts = parts[:index]
