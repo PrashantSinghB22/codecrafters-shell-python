@@ -1,7 +1,7 @@
 import os
 import sys
-import subprocess
 import shlex
+import subprocess
 
 builtins = {"echo", "exit", "type", "pwd", "cd"}
 
@@ -65,7 +65,12 @@ def handle_cd(parts):
         print(f"cd: {directory}: No such file or directory", file=sys.stderr)
 
 
-def run_external(parts, stdout_file, stderr_file, append_stdout):
+def run_external(parts,
+                 stdout_file,
+                 stderr_file,
+                 append_stdout,
+                 append_stderr):
+
     executable = find_executable(parts[0])
 
     if executable is None:
@@ -81,7 +86,8 @@ def run_external(parts, stdout_file, stderr_file, append_stdout):
             stdout = open(stdout_file, mode)
 
         if stderr_file is not None:
-            stderr = open(stderr_file, "w")
+            mode = "a" if append_stderr else "w"
+            stderr = open(stderr_file, mode)
 
         subprocess.run(
             parts,
@@ -115,8 +121,11 @@ def main():
 
         stdout_file = None
         stderr_file = None
-        append_stdout = False
 
+        append_stdout = False
+        append_stderr = False
+
+        # stdout append
         if "1>>" in parts:
             index = parts.index("1>>")
             stdout_file = parts[index + 1]
@@ -129,27 +138,41 @@ def main():
             append_stdout = True
             parts = parts[:index]
 
+        # stdout overwrite
         elif "1>" in parts:
             index = parts.index("1>")
             stdout_file = parts[index + 1]
+            append_stdout = False
             parts = parts[:index]
 
         elif ">" in parts:
             index = parts.index(">")
             stdout_file = parts[index + 1]
+            append_stdout = False
             parts = parts[:index]
 
-        if "2>" in parts:
+        # stderr append
+        if "2>>" in parts:
+            index = parts.index("2>>")
+            stderr_file = parts[index + 1]
+            append_stderr = True
+            parts = parts[:index]
+
+        # stderr overwrite
+        elif "2>" in parts:
             index = parts.index("2>")
             stderr_file = parts[index + 1]
+            append_stderr = False
             parts = parts[:index]
 
+        # Create redirected files for builtins
         if stdout_file is not None:
             mode = "a" if append_stdout else "w"
             open(stdout_file, mode).close()
 
         if stderr_file is not None:
-            open(stderr_file, "w").close()
+            mode = "a" if append_stderr else "w"
+            open(stderr_file, mode).close()
 
         if not parts:
             continue
@@ -162,17 +185,23 @@ def main():
         elif command == "echo":
             handle_echo(parts, stdout_file, append_stdout)
 
-        elif command == "type":
-            handle_type(parts, stdout_file, append_stdout)
-
         elif command == "pwd":
             handle_pwd(stdout_file, append_stdout)
+
+        elif command == "type":
+            handle_type(parts, stdout_file, append_stdout)
 
         elif command == "cd":
             handle_cd(parts)
 
         else:
-            run_external(parts, stdout_file, stderr_file, append_stdout)
+            run_external(
+                parts,
+                stdout_file,
+                stderr_file,
+                append_stdout,
+                append_stderr,
+            )
 
 
 if __name__ == "__main__":
